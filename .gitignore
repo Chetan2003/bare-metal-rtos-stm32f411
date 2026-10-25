@@ -1,0 +1,6 @@
+build
+mx.scratch
+!.settings
+.clangd
+gdbClient_log.txt
+EWARM/
