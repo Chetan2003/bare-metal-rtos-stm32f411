@@ -69,11 +69,11 @@ CPU cycles per iteration.
 646 / 215 and, 20 s later, 1040 / 346, a ratio of 3.01 against the 3.00 expected from the
 600,000 : 200,000 loop lengths.
 
-**Rate-monotonic scheduler** (3,329 jobs, no deadline misses, no dropped log lines):
+**Rate-monotonic scheduler** (3,328 jobs, no deadline misses, no dropped log lines):
 
 | Task | Period | Jobs | Measured response (µs) | Predicted worst case (µs) |
 |---|---|---|---|---|
-| T1 | 10 ms | 1,958 | 1414 - 1420 | 1414 |
+| T1 | 10 ms | 1,957 | 1414 - 1420 | 1414 |
 | T2 | 20 ms | 979 | 8863 - 8870 | 8870 |
 | T3 | 50 ms | 392 | 6452 - 15330 | 15322 |
 
