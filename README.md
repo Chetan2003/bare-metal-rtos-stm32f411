@@ -60,6 +60,42 @@ cmake --build --preset Debug
 Debug with the **STM32Cube: Debug RTOS (ST-Link)** launch configuration in VS Code.
 UART output: ST-LINK virtual COM port, 115200 8N1.
 
+## Measured results (Nucleo-F411RE, 84 MHz, `-O0`)
+
+Raw UART captures are in [`results/`](results/). The busy-loop calibration measured 11.0
+CPU cycles per iteration.
+
+**Context switch.** Counters of the two equal-priority tasks, read over SWD while running:
+646 / 215 and, 20 s later, 1040 / 346, a ratio of 3.01 against the 3.00 expected from the
+600,000 : 200,000 loop lengths.
+
+**Rate-monotonic scheduler** (3,329 jobs, no deadline misses, no dropped log lines):
+
+| Task | Period | Jobs | Measured response (µs) | Predicted worst case (µs) |
+|---|---|---|---|---|
+| T1 | 10 ms | 1,958 | 1414 - 1420 | 1414 |
+| T2 | 20 ms | 979 | 8863 - 8870 | 8870 |
+| T3 | 50 ms | 392 | 6452 - 15330 | 15322 |
+
+The execution times used for the prediction were derived from the same run (C1 from T1,
+C2 from T2's worst case, C3 from T3's best case), so T2's match is a self-consistency check;
+T3's worst case, predicted from the other three figures, is the independent test: it lands
+within 8 µs of the measurement. T3 shows two response-time clusters (about 6.45 ms and 15.3 ms)
+depending on where its release falls in the 100 ms hyperperiod.
+
+**Priority inversion** (H: 100 ms period, M: 5 ms period with a 1 ms load, L: 95 ms period
+holding the mutex for 25 ms of work; about 208 H releases per run):
+
+| | Max wait of H (µs) | Mean wait when blocked (µs) |
+|---|---|---|
+| PIP off | 27,247 | 14,748 |
+| PIP on | 21,172 | 11,205 |
+
+Without inheritance H waits 2.2 ms longer than L's whole critical section, and the extra
+6.1 ms matches six runs of M (about 1.01 ms each), a task that never touches the mutex.
+With inheritance H's worst wait stays below the critical-section length. The maxima were
+identical in all 11 drift cycles of each run.
+
 ## Limitations
 
 - The kernel does not save FPU registers on a context switch, so tasks must not use
